@@ -52,8 +52,16 @@ export default function DocumentComparisonPage() {
 
       setDocuments(docs);
       if (docs.length >= 2) {
-        setDocAId(docs[0].id);
-        setDocBId(docs[1].id);
+        const v1 = docs.find(
+          (d) => d.name.includes("Employment Agreement.pdf") && !d.name.includes("Revised")
+        );
+        const v2 = docs.find((d) => d.name.includes("Revised"));
+        const targetA = v1 ? v1.id : docs[0].id;
+        const targetB = v2 ? v2.id : docs[1].id;
+
+        setDocAId(targetA);
+        setDocBId(targetB);
+        handleRunComparison(targetA, targetB);
       }
     } catch (err) {
       console.error(err);

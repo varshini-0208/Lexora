@@ -6,10 +6,7 @@ import {
   setSessionCookie,
   hashPassword,
 } from "@/lib/auth";
-import { SAMPLE_DOCUMENTS } from "@/lib/sample-data";
-import { cleanDocumentText, detectDocumentSections } from "@/lib/extractor";
-import { localLegalAnalyzer } from "@/lib/ai/local-engine";
-import { LegalDocument } from "@/lib/types";
+import { generateDemoDataForUser } from "@/lib/db/seeder";
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,67 +37,24 @@ export async function POST(req: NextRequest) {
       shouldSetCookie = true;
     }
 
-    const seededDocs: LegalDocument[] = [];
+    // Generate all 5 pre-analyzed demo documents, checklists, and comparison
+    const { documents, checklists, sampleComparison } = await generateDemoDataForUser(user.id);
 
-    for (const sample of SAMPLE_DOCUMENTS) {
-      const docId = `doc_${sample.id}_${user.id.slice(-6)}`;
-      const existing = await db.getDocumentById(docId, user.id);
-
-      if (existing) {
-        seededDocs.push(existing);
-        continue;
-      }
-
-      const cleaned = cleanDocumentText(sample.rawText);
-      const sections = detectDocumentSections(cleaned);
-      const analysis = await localLegalAnalyzer.analyzeDocument(cleaned, sample.name);
-
-      const legalDoc: LegalDocument = {
-        id: docId,
-        userId: user.id,
-        name: sample.name,
-        type: analysis.docType,
-        typeConfidence: analysis.typeConfidence,
-        fileSize: sample.rawText.length,
-        extractedText: sample.rawText,
-        cleanedText: cleaned,
-        sections,
-        summary: analysis.summary,
-        keyTerms: analysis.keyTerms,
-        clauses: analysis.clauses,
-        risks: analysis.risks,
-        riskScores: analysis.riskScores,
-        status: "ready",
-        isDemo: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await db.saveDocument(legalDoc);
-
-      // Also generate initial checklist
-      const checklistItems = await localLegalAnalyzer.generateChecklist(
-        cleaned,
-        analysis.docType
-      );
-      await db.saveChecklist({
-        id: `chk_${docId}`,
-        userId: user.id,
-        documentId: docId,
-        documentName: sample.name,
-        items: checklistItems,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-
-      seededDocs.push(legalDoc);
+    for (const doc of documents) {
+      await db.saveDocument(doc);
+    }
+    for (const chk of checklists) {
+      await db.saveChecklist(chk);
+    }
+    if (sampleComparison) {
+      await db.saveComparison(sampleComparison);
     }
 
     const response = NextResponse.json({
       success: true,
       message: "Sample demo contracts loaded successfully.",
-      documents: seededDocs,
-      activeDemoDocId: seededDocs[0]?.id,
+      documents,
+      activeDemoDocId: documents[0]?.id,
     });
 
     if (shouldSetCookie && sessionToken) {

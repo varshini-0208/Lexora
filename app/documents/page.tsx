@@ -25,6 +25,7 @@ export default function DocumentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [isUploading, setIsUploading] = useState(false);
+  const [isSeedingDemo, setIsSeedingDemo] = useState(false);
 
   const fetchDocuments = async () => {
     setLoading(true);
@@ -32,7 +33,13 @@ export default function DocumentsListPage() {
       const res = await fetch("/api/documents");
       if (res.ok) {
         const data = await res.json();
-        setDocuments(data.documents || []);
+        if (data.documents && data.documents.length > 0) {
+          setDocuments(data.documents);
+        } else {
+          const demoRes = await fetch("/api/seed-demo", { method: "POST" });
+          const demoData = await demoRes.json();
+          setDocuments(demoData.documents || []);
+        }
       } else {
         // Auto seed demo if not logged in
         const demoRes = await fetch("/api/seed-demo", { method: "POST" });
@@ -43,6 +50,21 @@ export default function DocumentsListPage() {
       console.error("Error fetching documents:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeedDemo = async () => {
+    setIsSeedingDemo(true);
+    try {
+      const res = await fetch("/api/seed-demo", { method: "POST" });
+      const data = await res.json();
+      if (data.documents) {
+        setDocuments(data.documents);
+      }
+    } catch (err) {
+      console.error("Seed demo error:", err);
+    } finally {
+      setIsSeedingDemo(false);
     }
   };
 
@@ -99,13 +121,24 @@ export default function DocumentsListPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsUploading(!isUploading)}
-          className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          {isUploading ? "Close Uploader" : "Upload Document"}
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setIsUploading(!isUploading)}
+            className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all self-start sm:self-auto"
+          >
+            <Plus className="h-4 w-4" />
+            {isUploading ? "Close Uploader" : "Upload Document"}
+          </button>
+
+          <button
+            onClick={handleSeedDemo}
+            disabled={isSeedingDemo}
+            className="flex items-center gap-1.5 rounded-xl border border-[#272e48] bg-[#121625] hover:bg-[#1a1f33] px-3.5 py-2 text-xs font-medium text-gray-200 transition-colors disabled:opacity-50"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+            {isSeedingDemo ? "Loading..." : "Load Sample Contracts"}
+          </button>
+        </div>
       </div>
 
       {isUploading && (

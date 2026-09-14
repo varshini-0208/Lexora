@@ -56,7 +56,16 @@ export default function DashboardPage() {
       const docsRes = await fetch("/api/documents");
       if (docsRes.ok) {
         const docsData = await docsRes.json();
-        setDocuments(docsData.documents || []);
+        if (docsData.documents && docsData.documents.length > 0) {
+          setDocuments(docsData.documents);
+        } else {
+          // If empty, auto-seed sample contracts
+          const demoRes = await fetch("/api/seed-demo", { method: "POST" });
+          const demoData = await demoRes.json();
+          if (demoData.documents) {
+            setDocuments(demoData.documents);
+          }
+        }
       }
     } catch (err) {
       console.error("Dashboard load error:", err);

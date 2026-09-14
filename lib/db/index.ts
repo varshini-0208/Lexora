@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { MongoClient, Db } from "mongodb";
 import {
   User,
@@ -8,6 +9,7 @@ import {
   Conversation,
   ComparisonResult,
 } from "@/lib/types";
+import { generateDemoDataForUser } from "@/lib/db/seeder";
 
 interface DbSchema {
   users: User[];
@@ -17,50 +19,101 @@ interface DbSchema {
   comparisons: ComparisonResult[];
 }
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const DATA_FILE = path.join(DATA_DIR, "lexora_db.json");
+function getStoragePaths(): { dataDir: string; dataFile: string } {
+  if (process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL) {
+    const dataDir = path.join(os.tmpdir(), "lexora_data");
+    return { dataDir, dataFile: path.join(dataDir, "lexora_db.json") };
+  }
+  const dataDir = path.join(process.cwd(), ".data");
+  return { dataDir, dataFile: path.join(dataDir, "lexora_db.json") };
+}
 
+let inMemoryDb: DbSchema | null = null;
 let mongoClient: MongoClient | null = null;
 let mongoDb: Db | null = null;
 let isMongoConnecting = false;
 
 function ensureLocalDbFile(): DbSchema {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (inMemoryDb) {
+    return inMemoryDb;
   }
-  if (!fs.existsSync(DATA_FILE)) {
-    const initialData: DbSchema = {
-      users: [],
-      documents: [],
-      checklists: [],
-      conversations: [],
-      comparisons: [],
-    };
-    fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2), "utf-8");
-    return initialData;
-  }
+
+  const { dataDir, dataFile } = getStoragePaths();
+
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf-8");
-    return JSON.parse(raw) as DbSchema;
-  } catch (err) {
-    console.error("Error reading local db file, resetting:", err);
-    const initialData: DbSchema = {
-      users: [],
-      documents: [],
-      checklists: [],
-      conversations: [],
-      comparisons: [],
-    };
-    fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2), "utf-8");
-    return initialData;
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch (e) {
+    console.warn("Could not create local data directory, using in-memory store:", e);
   }
+
+  // 1. Try reading from active dataFile
+  try {
+    if (fs.existsSync(dataFile)) {
+      const raw = fs.readFileSync(dataFile, "utf-8");
+      inMemoryDb = JSON.parse(raw) as DbSchema;
+      return inMemoryDb;
+    }
+  } catch (err) {
+    console.warn("Error reading dataFile:", err);
+  }
+
+  // 2. Try reading fallback from process.cwd()/.data/lexora_db.json
+  const cwdFile = path.join(process.cwd(), ".data", "lexora_db.json");
+  try {
+    if (fs.existsSync(cwdFile)) {
+      const raw = fs.readFileSync(cwdFile, "utf-8");
+      inMemoryDb = JSON.parse(raw) as DbSchema;
+      return inMemoryDb;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 3. Fallback to initialized database with pre-configured users
+  const initialData: DbSchema = {
+    users: [
+      {
+        id: "usr_demo_judge_2026",
+        name: "Judge / Demo Counsel",
+        email: "demo@lexora.ai",
+        passwordHash: "$2a$10$wE1V9WJ6Y7z0mO.3k6K4x.G5y3E2xV1u5u6o7p8q9r0s1t2u3v4w",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: "usr_1789369627597_rynn6",
+        name: "Vasantharaj M",
+        email: "vasantharajm.cs24@bitsathy.ac.in",
+        passwordHash: "$2a$10$wE1V9WJ6Y7z0mO.3k6K4x.G5y3E2xV1u5u6o7p8q9r0s1t2u3v4w",
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    documents: [],
+    checklists: [],
+    conversations: [],
+    comparisons: [],
+  };
+
+  inMemoryDb = initialData;
+  saveLocalDb(initialData);
+  return initialData;
 }
 
 function saveLocalDb(data: DbSchema): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  inMemoryDb = data;
+  const { dataDir, dataFile } = getStoragePaths();
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), "utf-8");
+  } catch (err) {
+    console.warn(
+      "Notice: Local DB saved to memory cache (filesystem write skipped in restricted environment):",
+      (err as Error).message
+    );
   }
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
 async function getMongo(): Promise<Db | null> {
@@ -124,27 +177,79 @@ export const db = {
   async getDocumentsByUser(userId: string): Promise<LegalDocument[]> {
     const mdb = await getMongo();
     if (mdb) {
-      const docs = await mdb
+      let docs = (await mdb
         .collection("documents")
         .find({ userId })
         .sort({ createdAt: -1 })
-        .toArray();
-      return docs as unknown as LegalDocument[];
+        .toArray()) as unknown as LegalDocument[];
+
+      if (docs.length === 0) {
+        const { documents, checklists, sampleComparison } = await generateDemoDataForUser(userId);
+        for (const doc of documents) {
+          await mdb
+            .collection("documents")
+            .replaceOne({ id: doc.id, userId }, doc as any, { upsert: true });
+        }
+        for (const chk of checklists) {
+          await mdb
+            .collection("checklists")
+            .replaceOne({ documentId: chk.documentId, userId }, chk as any, { upsert: true });
+        }
+        if (sampleComparison) {
+          await mdb
+            .collection("comparisons")
+            .replaceOne({ id: sampleComparison.id, userId }, sampleComparison as any, { upsert: true });
+        }
+        docs = documents;
+      }
+      return docs;
     }
+
     const local = ensureLocalDbFile();
-    return local.documents
+    let list = local.documents
       .filter((d) => d.userId === userId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Auto-seed if user has 0 documents
+    if (list.length === 0) {
+      const { documents, checklists, sampleComparison } = await generateDemoDataForUser(userId);
+      for (const doc of documents) {
+        const idx = local.documents.findIndex((d) => d.id === doc.id && d.userId === userId);
+        if (idx >= 0) local.documents[idx] = doc;
+        else local.documents.push(doc);
+      }
+      for (const chk of checklists) {
+        const idx = local.checklists.findIndex((c) => c.documentId === chk.documentId && c.userId === userId);
+        if (idx >= 0) local.checklists[idx] = chk;
+        else local.checklists.push(chk);
+      }
+      if (sampleComparison) {
+        const idx = local.comparisons.findIndex((c) => c.id === sampleComparison.id && c.userId === userId);
+        if (idx >= 0) local.comparisons[idx] = sampleComparison;
+        else local.comparisons.push(sampleComparison);
+      }
+      saveLocalDb(local);
+      list = documents;
+    }
+
+    return list;
   },
 
   async getDocumentById(id: string, userId: string): Promise<LegalDocument | null> {
     const mdb = await getMongo();
     if (mdb) {
-      const doc = await mdb.collection("documents").findOne({ id, userId });
+      let doc = await mdb.collection("documents").findOne({ id, userId });
+      if (!doc && id.startsWith("doc_demo-")) {
+        doc = await mdb.collection("documents").findOne({ id, isDemo: true });
+      }
       return doc as unknown as LegalDocument | null;
     }
     const local = ensureLocalDbFile();
-    return local.documents.find((d) => d.id === id && d.userId === userId) || null;
+    let doc = local.documents.find((d) => d.id === id && d.userId === userId);
+    if (!doc && id.startsWith("doc_demo-")) {
+      doc = local.documents.find((d) => d.id === id && d.isDemo === true);
+    }
+    return doc || null;
   },
 
   async saveDocument(doc: LegalDocument): Promise<LegalDocument> {
@@ -189,13 +294,18 @@ export const db = {
   async getChecklist(documentId: string, userId: string): Promise<DocumentChecklist | null> {
     const mdb = await getMongo();
     if (mdb) {
-      const doc = await mdb.collection("checklists").findOne({ documentId, userId });
+      let doc = await mdb.collection("checklists").findOne({ documentId, userId });
+      if (!doc && documentId.startsWith("chk_doc_demo-")) {
+        doc = await mdb.collection("checklists").findOne({ documentId });
+      }
       return doc as unknown as DocumentChecklist | null;
     }
     const local = ensureLocalDbFile();
-    return (
-      local.checklists.find((c) => c.documentId === documentId && c.userId === userId) || null
-    );
+    let chk = local.checklists.find((c) => c.documentId === documentId && c.userId === userId);
+    if (!chk && documentId.startsWith("chk_doc_demo-")) {
+      chk = local.checklists.find((c) => c.documentId === documentId);
+    }
+    return chk || null;
   },
 
   async getAllChecklistsByUser(userId: string): Promise<DocumentChecklist[]> {
@@ -283,7 +393,9 @@ export const db = {
       return comparison;
     }
     const local = ensureLocalDbFile();
-    const idx = local.comparisons.findIndex((c) => c.id === comparison.id && c.userId === comparison.userId);
+    const idx = local.comparisons.findIndex(
+      (c) => c.id === comparison.id && c.userId === comparison.userId
+    );
     if (idx >= 0) {
       local.comparisons[idx] = comparison;
     } else {

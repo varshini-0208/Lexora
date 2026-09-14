@@ -159,4 +159,104 @@ By: /s/ Dr. Hiroshi Tanaka, CTO
 SYNAPSE AI LABS LLC
 By: /s/ Claire Vance, VP Business Development`,
   },
+  {
+    id: "demo-employment-agreement-v2",
+    name: "Senior Software Engineer Employment Agreement (Revised v2).pdf",
+    type: "Employment Agreement",
+    description: "Negotiated version of the Apex Cloud employment contract with 6-month geographic non-compete, 3-month severance, and mutual liability.",
+    badge: "Negotiated Favorable Version",
+    rawText: `EMPLOYMENT AGREEMENT (REVISED AMENDMENT)
+
+THIS AMENDED AND RESTATED EMPLOYMENT AGREEMENT (the "Agreement") is made and entered into as of February 1, 2026, by and between Apex Cloud Technologies, Inc., a Delaware corporation ("Company"), and Marcus Vance, an individual residing in Austin, Texas ("Employee").
+
+RECITALS
+WHEREAS, the parties desire to amend and restate the terms of Employee's engagement as Principal Software Architect with balanced terms reflecting mutual covenants.
+
+NOW, THEREFORE, the parties agree as follows:
+
+SECTION 1. POSITION AND DUTIES
+1.1 Title. Employee shall serve as Principal Software Architect reporting directly to the Chief Technology Officer.
+1.2 Time Allocation. Employee agrees to devote customary professional efforts to Company business. Outside open-source contributions and non-conflicting technical writing shall be permitted with prior disclosure.
+
+SECTION 2. COMPENSATION AND BENEFITS
+2.1 Base Salary. The Company shall pay Employee an enhanced base salary of $210,000 per annum, payable in semi-monthly installments.
+2.2 Discretionary Bonus. Employee shall be eligible for an annual performance bonus targeted at 25% of Base Salary based on objective milestone metrics.
+2.3 Comprehensive Benefits. Employee shall be entitled to group health, dental, life, and 401(k) matching up to 5% of base salary.
+
+SECTION 3. TERM, NOTICE, AND SEVERANCE
+3.1 Notice Period. Either party may terminate employment upon sixty (60) days advance written notice.
+3.2 Severance Benefit. In the event of termination by the Company without Cause, the Company shall pay Employee three (3) months of continued base salary and maintain COBRA healthcare coverage for three (3) months as severance pay.
+3.3 Termination for Cause. In the event of substantiated gross misconduct, employment may be terminated immediately with salary accrued through the date of termination.
+
+SECTION 4. INTELLECTUAL PROPERTY
+4.1 Inventions Assignment. Employee assigns to the Company all proprietary inventions created during working hours and directly relating to the Company's cloud orchestration business.
+4.2 Pre-Existing IP. All prior inventions listed on Exhibit A created prior to commencement remain Employee's sole intellectual property.
+
+SECTION 5. RESTRICTIVE COVENANTS
+5.1 Narrow Non-Competition. For a period of six (6) months following departure, Employee shall not directly engage with immediate direct competitors within a twenty-five (25) mile radius of Austin, Texas. General software engineering roles in unrelated technology sectors are expressly permitted.
+5.2 Non-Solicitation. For a period of twelve (12) months post-termination, Employee shall not solicit Company employees.
+
+SECTION 6. CONFIDENTIALITY
+6.1 Protection. Employee shall maintain Company proprietary data in confidence for three (3) years post-employment.
+
+SECTION 7. MUTUAL INDEMNIFICATION AND LIABILITY
+7.1 Mutual Indemnity. Each party agrees to indemnify the other against third-party claims arising from gross negligence or intentional unlawful acts.
+7.2 Mutual Liability Cap. Each party's aggregate monetary liability under this Agreement shall not exceed twelve (12) months of base salary paid or payable.
+
+SECTION 8. DISPUTE RESOLUTION
+8.1 Mediation and Arbitration. Disputes shall first undergo confidential mediation. If unresolved, disputes shall be arbitrated in Austin, Texas.
+8.2 Attorney's Fees. The prevailing party in any arbitration or enforcement action shall be entitled to reasonable attorney fees and costs.
+8.3 Governing Law. This Agreement shall be governed by the laws of the State of Texas.
+
+IN WITNESS WHEREOF, the parties execute this Revised Agreement.
+
+APEX CLOUD TECHNOLOGIES, INC.
+By: /s/ Sarah Jenkins, CEO
+
+EMPLOYEE
+By: /s/ Marcus Vance`,
+  },
+  {
+    id: "demo-saas-agreement",
+    name: "SaaS Cloud Services & Service Level Agreement.pdf",
+    type: "Software/SaaS Agreement",
+    description: "Enterprise cloud subscription agreement featuring 99.9% uptime SLA, customer data ownership, unilateral update notice, and aggregate liability caps.",
+    badge: "SLA & Data Terms",
+    rawText: `MASTER SAAS SERVICES AGREEMENT & SLA
+
+This Master SaaS Services Agreement ("Agreement") is made effective March 1, 2026, by and between CloudScale Systems Inc., a Delaware corporation ("Provider"), and Vertex Enterprise Solutions LLC ("Customer").
+
+1. SUBSCRIPTION SERVICES.
+1.1 Platform Access. Provider grants Customer a non-exclusive, non-transferable subscription license to access the CloudScale AI Infrastructure Platform during the Subscription Term.
+1.2 Service Level Commitment. Provider guarantees 99.9% Monthly Uptime ("SLA"). In the event Monthly Uptime drops below 99.9%, Customer shall be eligible for Service Credits equal to 10% of monthly fees for each full hour of downtime, capped at 50% of the monthly fee.
+
+2. DATA OWNERSHIP AND SECURITY.
+2.1 Customer Data Ownership. Customer retains all worldwide right, title, and ownership in all data, models, and confidential files uploaded to the platform ("Customer Data").
+2.2 Security Standards. Provider shall maintain SOC 2 Type II compliance and implement TLS 1.3 encryption in transit and AES-256 encryption at rest. Provider will not use Customer Data to train foundation AI models without explicit opt-in consent.
+
+3. FEES AND PAYMENT TERMS.
+3.1 Annual Subscription. Customer shall pay an annual platform subscription fee of $48,000 in advance.
+3.2 Late Invoices. Overdue balances shall accrue interest at 1.0% per month or the legal maximum.
+
+4. TERM AND TERMINATION.
+4.1 Term. The initial term is thirty-six (36) months from the Effective Date.
+4.2 Termination for Cause. Either party may terminate upon thirty (30) days written notice of material breach if uncurred.
+4.3 Data Retrieval Upon Termination. Upon expiration or termination, Provider shall make Customer Data available for export for sixty (60) days, after which Provider shall securely destroy all copies.
+
+5. LIMITATION OF LIABILITY.
+5.1 Cap on Liability. NEITHER PARTY'S TOTAL AGGREGATE LIABILITY ARISING UNDER THIS AGREEMENT SHALL EXCEED THE FEES ACTUALLY PAID BY CUSTOMER IN THE TWELVE (12) MONTHS PRECEDING THE INCIDENT.
+5.2 Consequential Damages Waiver. IN NO EVENT SHALL EITHER PARTY BE LIABLE FOR LOST PROFITS, LOSS OF GOODWILL, OR INDIRECT DAMAGES.
+
+6. GOVERNING LAW AND VENUE.
+This Agreement is governed by the laws of the State of New York. The parties submit to the exclusive jurisdiction of the state and federal courts in New York County, New York.
+
+IN WITNESS WHEREOF, the parties execute this Master Services Agreement.
+
+PROVIDER: CloudScale Systems Inc.
+By: /s/ David Sterling, VP Enterprise Sales
+
+CUSTOMER: Vertex Enterprise Solutions LLC
+By: /s/ Rachel Thorne, Chief Information Officer`,
+  },
 ];
+
