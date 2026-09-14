@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #090a0f;
+    --foreground: #f3f4f6;
+    --surface: #11131b;
+    --surface-border: #1f2333;
+    --surface-hover: #181b28;
+    --card: #11131b;
+    --card-foreground: #f3f4f6;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --muted: #1e2235;
+    --muted-foreground: #9ca3af;
+    --accent: #2563eb;
+    --accent-foreground: #ffffff;
+    --border: #1f2438;
+    --ring: #3b82f6;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Scrollbar for Legal Document Workspace */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 17, 26, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 115, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 155, 0.7);
+}
+
+/* Subtle glow gradients */
+.glow-blue {
+  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15), transparent 70%);
+}
+
+.glow-subtle {
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08), transparent 70%);
+}
+
+/* Shimmer animation for pipeline */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+}
