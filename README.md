@@ -220,8 +220,8 @@ Guardrails built into Lexora:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/lexora.git
-cd lexora
+git clone https://github.com/varshini-0208/Lexora.git
+cd Lexora
 ```
 
 ### 2. Install dependencies
